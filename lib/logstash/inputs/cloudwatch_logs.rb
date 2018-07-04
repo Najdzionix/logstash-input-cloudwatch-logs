@@ -183,23 +183,29 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       if !@sincedb.member?(group)
         @sincedb[group] = 0
       end
-      params = {
-          :log_group_name => group,
-          :start_time => @sincedb[group],
+      if next_token.nil?       
+        params = {
+            :log_group_name => group,
+            :start_time => @sincedb[group],
+            :interleaved => true
+        }
+      else         
+        params = {
+          :log_group_name => group,          
           :interleaved => true,
           :next_token => next_token
-      }
+        }
+      end
       resp = @cloudwatch.filter_log_events(params)
 
       resp.events.each do |event|
         process_log(event, group)
       end
 
-      _sincedb_write
-
       next_token = resp.next_token
       break if next_token.nil?
     end
+    _sincedb_write
     @priority.delete(group)
     @priority << group
   end #def process_group
