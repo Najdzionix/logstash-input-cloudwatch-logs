@@ -189,12 +189,14 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
             :start_time => @sincedb[group],
             :interleaved => true
         }
+        logger.info("Read logs use time: #{parse_time(@sincedb[group])} for group:#{group}")
       else         
         params = {
           :log_group_name => group,          
           :interleaved => true,
           :next_token => next_token
         }
+        logger.info("Read logs use token since for group:#{group}")
       end
       resp = @cloudwatch.filter_log_events(params)
 
